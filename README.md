@@ -5,6 +5,6 @@ API's used:
 
 # Features
 - User Authentication(Login, Register, Logout)
-- Location detection and display weather of current location's
+- Location detection and display weather of current location
 - Search bar for location search and display of that location's weather(Temprature, Humidity, Winds)
 
