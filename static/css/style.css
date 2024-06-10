@@ -1,0 +1,24 @@
+.searchbox-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.searchText {
+    text-align: center;
+}
+
+#searchBtn {
+    margin-left: 20px;
+}
+.spinner-container{
+    width: 100vw;
+    background-color: red;
+}
+#mySpinner {
+    width: 6rem;
+    height: 6rem;
+    position: absolute;
+    left: 45%;
+    top: 30%;
+}

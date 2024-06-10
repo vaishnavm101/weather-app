@@ -1,0 +1,142 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Place Autocomplete</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <script>
+        /**
+         * @license
+         * Copyright 2024 Google LLC. All Rights Reserved.
+         * SPDX-License-Identifier: Apache-2.0
+         */
+        let lat, lng;
+        async function init() {
+            await customElements.whenDefined('gmp-map');
+
+            const placePicker = document.getElementById("place-picker");
+
+            placePicker.addEventListener('gmpx-placechange', () => {
+                const place = placePicker.value;
+
+                if (!place.location) {
+                    window.alert("No details available for input: '" + place.name + "'");
+                    return;
+                }
+
+                lat = place.location.lat();
+                lng = place.location.lng();
+                console.log(`Selected place location: lat: ${lat}, lon: ${lng}`);
+            });
+        }
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+</head>
+
+<body>
+    {% include "app/navbar.html" %}
+    <script type="module" src="https://unpkg.com/@googlemaps/extended-component-library@0.6"></script>
+    <gmpx-api-loader key="AIzaSyBYsEIyYT_QL9KWzGzyPmGceZw0L6-ha0s"
+        solution-channel="GMP_CCS_autocomplete_v3"></gmpx-api-loader>
+    <div class="searchbox-container mt-5">
+        <gmpx-place-picker id="place-picker"></gmpx-place-picker>
+        <button class="btn btn-primary" id="searchBtn">Search</button>
+    </div>
+    {% csrf_token %}
+    <p class="font-weight-bolder mt-3 searchText"><b>Search the city/location you want weather of.</b></p>
+    <div class="spinner-grow  " id="mySpinner" role="status">
+        <span class="sr-only">...</span>
+    </div>
+    <hr>
+
+    {% include "app/weather-report.html" %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+        integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
+        crossorigin="anonymous"></script>
+    <script>
+        async function initLocation() {
+            if ("geolocation" in navigator) {
+                try {
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject);
+                    });
+                    latitude = position.coords.latitude;
+                    longitude = position.coords.longitude;
+                } catch (error) {
+                    console.error("Error getting geolocation:", error);
+                }
+            } else {
+                console.error("Geolocation is not supported by your browser");
+            }
+
+            if (latitude != undefined && longitude != undefined) {
+                // Location allowed by user
+                getLocationWeather(latitude, longitude);
+            }
+        }
+        initLocation();
+        function setValue(id, value) {
+            const ids = document.querySelectorAll('#' + id);
+            ids.forEach((id) => {
+                id.innerText = value
+            })
+        }
+        function getFormattedDate(date) {
+            const value = new Date(date * 1000);
+            return value.getHours() + ":" + value.getMinutes() + ":" + value.getSeconds();
+        }
+        async function getLocationWeather(latitude, longitude) {
+            const URL = '{% url "get_weather" %}';
+            const csrftoken = document.querySelector("input[name='csrfmiddlewaretoken']").value;
+            const spinner = document.getElementById("mySpinner");
+            const weatherReportContainer = document.getElementById("weather-container");
+
+            spinner.classList.remove('d-none');
+            weatherReportContainer.classList.add('d-none');
+            const request = await fetch(URL, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ "lat": latitude, "lng": longitude })
+            });
+            const response = await request.json();
+            console.log("Data: ", response);
+            const data = response['data']
+            if (!response.result)
+                return
+            setValue("cityName", "Weather for " + data['cityName']);
+            setValue('temp', data['temp']);
+            setValue('temp_min', data['minTemp']);
+            setValue('temp_max', data['maxTemp']);
+            setValue('humidity', data['humidity']);
+            setValue('wind_degree', data['wind_deg']);
+            setValue('feels_like', data['temp_feels_like']);
+
+            setValue('windSpeed', data['wind_speed']);
+            setValue('sunrise', getFormattedDate(data['sunrise']));
+            setValue('sunset', getFormattedDate(data['sunset']));
+            weatherReportContainer.classList.remove('d-none');
+            spinner.classList.add("d-none");
+        }
+        const searchBtn = document.getElementById("searchBtn");
+        searchBtn.addEventListener('click', async (e) => {
+            getLocationWeather(lat, lng);
+        })
+    </script>
+</body>
+
+</html>
