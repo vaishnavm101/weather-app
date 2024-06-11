@@ -44,7 +44,7 @@
 <body>
     {% include "app/navbar.html" %}
     <script type="module" src="https://unpkg.com/@googlemaps/extended-component-library@0.6"></script>
-    <gmpx-api-loader key="AIzaSyBYsEIyYT_QL9KWzGzyPmGceZw0L6-ha0s"
+    <gmpx-api-loader key={{GOOGLE_MAPS_API_KEY}}
         solution-channel="GMP_CCS_autocomplete_v3"></gmpx-api-loader>
     <div class="searchbox-container mt-5">
         <gmpx-place-picker id="place-picker"></gmpx-place-picker>

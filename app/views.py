@@ -13,9 +13,12 @@ API_BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
 
 @login_required
 def home(request):
-    print(request.user)
-    
-    return render(request, "app/index.html")
+    load_dotenv()
+    GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")
+    context = {
+        "GOOGLE_MAPS_API_KEY": GOOGLE_MAPS_API_KEY
+    }
+    return render(request, "app/index.html", context)
 
 @login_required
 def get_weather(request):
